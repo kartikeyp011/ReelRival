@@ -1,23 +1,49 @@
+import numpy as np
 from backend.ingestion.youtube import fetch_video_data, fetch_transcript
 from backend.ingestion.chunker import build_all_chunks
+from backend.retrieval.faiss_store import faiss_store
+from backend.retrieval.metadata_store import metadata_store
+from backend.retrieval.retriever import retrieve, format_chunks_for_prompt
 
-# In test_ingestion.py — swap to this URL temporarily
+# ── Ingest ──────────────────────────────────────────
 url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
-print("Fetching video metadata...")
+print("=== INGESTION ===")
 meta = fetch_video_data(url)
-print(f"Title: {meta.title}")
-print(f"Views: {meta.view_count:,}")
-print(f"Engagement Rate: {meta.engagement_rate}%")
-print(f"Transcript Available: {meta.transcript_available}")
+print(f"Video: {meta.title} | Engagement: {meta.engagement_rate}%")
 
-print("\nFetching transcript...")
 segments = fetch_transcript(meta.video_id)
-print(f"Segments fetched: {len(segments) if segments else 0}")
+print(f"Transcript segments: {len(segments) if segments else 0}")
 
-print("\nBuilding chunks...")
 chunks = build_all_chunks(meta, segments)
-print(f"Total chunks: {len(chunks)}")
-for c in chunks[:3]:
-    print(f"  [{c.chunk_type}] {c.chunk_id} | {c.start_label} → {c.end_label}")
-    print(f"    {c.text[:120]}...")
+print(f"Chunks built: {len(chunks)}")
+
+# ── Fake embeddings (1024-dim random unit vectors) ──
+print("\n=== FAISS STORE ===")
+dim = 1024
+fake_embeddings = [
+    (np.random.randn(dim) / np.linalg.norm(np.random.randn(dim))).tolist()
+    for _ in chunks
+]
+
+faiss_ids = faiss_store.add(fake_embeddings)
+metadata_store.add_chunks(chunks, faiss_ids)
+
+faiss_store.save()
+metadata_store.save()
+
+print(f"Vectors in FAISS: {faiss_store.total_vectors}")
+print(f"Chunks in metadata store: {metadata_store.total_chunks}")
+print(f"Videos indexed: {metadata_store.get_video_ids_in_store()}")
+
+# ── Fake retrieval ──────────────────────────────────
+print("\n=== RETRIEVAL ===")
+fake_query = (np.random.randn(dim) / np.linalg.norm(np.random.randn(dim))).tolist()
+results = retrieve(fake_query, k=3)
+
+print(f"Retrieved {len(results)} chunks:")
+for r in results:
+    print(f"  [{r['chunk_type']}] {r['chunk_id']} | score={r['score']:.4f} | {r['text'][:80]}...")
+
+print("\n=== PROMPT EVIDENCE BLOCK ===")
+print(format_chunks_for_prompt(results))
