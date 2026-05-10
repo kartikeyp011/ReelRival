@@ -64,7 +64,6 @@ def _fetch_metadata_api(video_id: str) -> Optional[dict]:
         stats = item.get("statistics", {})
         content = item.get("contentDetails", {})
 
-        # Parse ISO 8601 duration to seconds
         duration_seconds = _parse_duration(content.get("duration", "PT0S"))
 
         return {
@@ -77,18 +76,16 @@ def _fetch_metadata_api(video_id: str) -> Optional[dict]:
             "comment_count": int(stats.get("commentCount", 0)),
         }
     except HttpError as e:
-        logger.warning(f"YouTube API HttpError for {video_id}: {e}. Will fallback to yt-dlp.")
+        logger.warning(f"YouTube API HttpError for {video_id}: {e}. Falling back to yt-dlp.")
         return None
     except Exception as e:
-        logger.warning(f"YouTube API unexpected error for {video_id}: {e}. Will fallback to yt-dlp.")
+        logger.warning(f"YouTube API unexpected error for {video_id}: {e}. Falling back to yt-dlp.")
         return None
 
 
 def _parse_duration(iso_duration: str) -> int:
     """Convert ISO 8601 duration string (PT4M13S) to total seconds."""
-    match = re.match(
-        r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", iso_duration
-    )
+    match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", iso_duration)
     if not match:
         return 0
     hours = int(match.group(1) or 0)
@@ -116,7 +113,7 @@ def _fetch_metadata_ytdlp(video_id: str) -> Optional[dict]:
             return {
                 "title": info.get("title", "Unknown Title"),
                 "channel": info.get("uploader", "Unknown Channel"),
-                "publish_date": info.get("upload_date", ""),          # YYYYMMDD
+                "publish_date": info.get("upload_date", ""),
                 "duration_seconds": info.get("duration", 0),
                 "view_count": info.get("view_count", 0) or 0,
                 "like_count": info.get("like_count", 0) or 0,
@@ -132,12 +129,39 @@ def _fetch_metadata_ytdlp(video_id: str) -> Optional[dict]:
 def fetch_transcript(video_id: str) -> Optional[list[dict]]:
     """
     Fetch timestamped transcript segments.
+    Tries English first, then falls back to any available transcript.
     Returns list of {"text": str, "start": float, "duration": float}
     or None if unavailable.
     """
+    # Attempt 1: direct English fetch
     try:
-        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        transcript = YouTubeTranscriptApi.get_transcript(
+            video_id, languages=["en", "en-US", "en-GB"]
+        )
         return transcript
+    except Exception:
+        pass
+
+    # Attempt 2: list all available transcripts and pick the first one
+    try:
+        ytt_api = YouTubeTranscriptApi()
+        transcript_list = ytt_api.list(video_id)
+
+        # Try manually created transcripts first, then auto-generated
+        for transcript in transcript_list:
+            try:
+                fetched = transcript.fetch()
+                # fetched is a FetchedTranscript object — convert to list of dicts
+                return [
+                    {"text": s.text, "start": s.start, "duration": s.duration}
+                    for s in fetched
+                ]
+            except Exception:
+                continue
+
+        logger.warning(f"No usable transcript found for video_id={video_id}")
+        return None
+
     except TranscriptsDisabled:
         logger.warning(f"Transcripts disabled for video_id={video_id}")
         return None
@@ -184,7 +208,7 @@ def fetch_video_data(url: str) -> VideoMetadata:
         comment_count=meta["comment_count"],
     )
 
-    # Check transcript availability without fetching full content yet
+    # Check transcript availability
     transcript_check = fetch_transcript(video_id)
     transcript_available = transcript_check is not None
 
