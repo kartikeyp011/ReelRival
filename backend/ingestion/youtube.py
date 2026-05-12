@@ -128,50 +128,19 @@ def _fetch_metadata_ytdlp(video_id: str) -> Optional[dict]:
 
 def fetch_transcript(video_id: str) -> Optional[list[dict]]:
     """
-    Fetch timestamped transcript segments.
-    Tries English first, then falls back to any available transcript.
-    Returns list of {"text": str, "start": float, "duration": float}
-    or None if unavailable.
+    Fetch ENGLISH transcript only — ignore other languages.
     """
-    # Attempt 1: direct English fetch
     try:
+        # English only — no fallback to other languages
         transcript = YouTubeTranscriptApi.get_transcript(
-            video_id, languages=["en", "en-US", "en-GB"]
+            video_id,
+            languages=["en", "en-US", "en-GB"]
         )
+        logger.info(f"English transcript found for {video_id}: {len(transcript)} segments")
         return transcript
-    except Exception:
-        pass
-
-    # Attempt 2: list all available transcripts and pick the first one
-    try:
-        ytt_api = YouTubeTranscriptApi()
-        transcript_list = ytt_api.list(video_id)
-
-        # Try manually created transcripts first, then auto-generated
-        for transcript in transcript_list:
-            try:
-                fetched = transcript.fetch()
-                # fetched is a FetchedTranscript object — convert to list of dicts
-                return [
-                    {"text": s.text, "start": s.start, "duration": s.duration}
-                    for s in fetched
-                ]
-            except Exception:
-                continue
-
-        logger.warning(f"No usable transcript found for video_id={video_id}")
-        return None
-
-    except TranscriptsDisabled:
-        logger.warning(f"Transcripts disabled for video_id={video_id}")
-        return None
-    except NoTranscriptFound:
-        logger.warning(f"No transcript found for video_id={video_id}")
-        return None
     except Exception as e:
-        logger.warning(f"Transcript fetch failed for {video_id}: {e}")
+        logger.warning(f"English transcript unavailable for {video_id}: {e}")
         return None
-
 
 # ─── Main Public Function ─────────────────────────────
 

@@ -47,31 +47,18 @@ export default function App() {
   }
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      maxWidth: "1100px",
-      margin: "0 auto",
-      padding: "24px 20px",
-    }}>
+    <div className="app-container">
 
       {/* Header */}
-      <div style={{ marginBottom: "28px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-          <span style={{ fontSize: "22px" }}>⚔️</span>
-          <h1 style={{ fontSize: "22px", fontWeight: 700, letterSpacing: "-0.02em" }}>
+      <div className="header">
+        <div className="header-title-wrapper">
+          <span style={{ fontSize: "48px" }}>⚔️</span>
+          <h1 className="header-title">
             ReelRival
           </h1>
-          <span style={{
-            fontSize: "11px", padding: "2px 8px",
-            background: "var(--accent-light)", color: "var(--accent)",
-            borderRadius: "999px", fontWeight: 600,
-          }}>
-            BETA
-          </span>
+          <span className="beta-badge">BETA</span>
         </div>
-        <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>
+        <p className="header-subtitle">
           AI-powered YouTube video comparison for creators · Powered by DeepSeek-R1 + RAG
         </p>
       </div>
@@ -79,49 +66,35 @@ export default function App() {
       <ServiceBanner health={health} />
 
       {phase === "input" && (
-        <div style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-lg)",
-          padding: "28px",
-        }}>
-          <h2 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "18px" }}>
+        <div className="glass-panel animate-up" style={{ maxWidth: "1000px", margin: "0 auto", width: "100%" }}>
+          <h2 style={{ fontSize: "24px", fontWeight: 600, marginBottom: "32px", textAlign: "center" }}>
             Compare Two YouTube Videos
           </h2>
           <URLInput onIngest={handleIngest} loading={loading} />
           {loading && (
-            <div style={{ marginTop: "16px", color: "var(--text-muted)", fontSize: "13px" }}>
-              ⏳ Fetching transcripts, computing embeddings, building index…
+            <div className="status-text" style={{ marginTop: "32px", justifyContent: "center" }}>
+              <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⚙️</span> Fetching transcripts, computing embeddings, building index…
             </div>
           )}
           {error && (
-            <div style={{ marginTop: "12px", color: "var(--error)", fontSize: "13px" }}>
-              ✗ {error}
+            <div className="error-text" style={{ marginTop: "32px", justifyContent: "center" }}>
+              <span>✗</span> {error}
             </div>
           )}
         </div>
       )}
 
       {phase === "chat" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px", flex: 1 }}>
+        <div className="animate-up" style={{ display: "flex", flexDirection: "column", gap: "32px", flex: 1, animationDelay: "0.1s" }}>
 
           {/* Video cards */}
-          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "32px", flexWrap: "wrap" }}>
             <VideoCard video={videoA} label="Video A" />
             <VideoCard video={videoB} label="Video B" />
           </div>
 
           {/* Chat */}
-          <div style={{
-            flex: 1,
-            background: "var(--bg)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--radius-lg)",
-            overflow: "hidden",
-            minHeight: "520px",
-            display: "flex",
-            flexDirection: "column",
-          }}>
+          <div className="chat-container">
             <ChatWindow
               sessionId={session}
               videoA={videoA}

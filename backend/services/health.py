@@ -1,6 +1,6 @@
 import logging
 import httpx
-from backend.config import settings
+from backend.config import kaggle_upstream_headers, settings
 from backend.retrieval.faiss_store import faiss_store
 
 logger = logging.getLogger(__name__)
@@ -11,7 +11,7 @@ async def check_services() -> dict:
     Check health of both Kaggle GPU services and local FAISS.
     Returns a dict with status of each component.
     """
-    headers = {"x-service-token": settings.kaggle_service_token}
+    headers = kaggle_upstream_headers()
 
     embed_ok = False
     llm_ok = False

@@ -2,56 +2,35 @@ export default function VideoCard({ video, label }) {
   if (!video) return null;
 
   const engagementColor =
-    video.engagement_rate >= 5 ? "#22c55e" :
-    video.engagement_rate >= 2 ? "#f59e0b" : "#ef4444";
+    video.engagement_rate >= 5 ? "var(--success)" :
+    video.engagement_rate >= 2 ? "var(--warning)" : "var(--error)";
 
   const fmt = (n) => n?.toLocaleString() ?? "N/A";
 
   return (
-    <div style={{
-      background: "var(--surface)",
-      border: "1px solid var(--border)",
-      borderRadius: "var(--radius-lg)",
-      padding: "18px",
-      flex: 1,
-      minWidth: 0,
-    }}>
-      {/* Label badge */}
-      <div style={{
-        display: "inline-block",
-        background: "var(--accent-light)",
-        color: "var(--accent)",
-        fontSize: "11px",
-        fontWeight: 700,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        padding: "3px 10px",
-        borderRadius: "999px",
-        marginBottom: "10px",
-      }}>
+    <div className="glass-panel" style={{ flex: 1, minWidth: "400px", padding: "32px" }}>
+      <div className="beta-badge" style={{ display: "inline-block", marginBottom: "20px", fontSize: "12px", padding: "6px 14px" }}>
         {label}
       </div>
 
-      {/* Title */}
       <div style={{
-        fontWeight: 600,
-        fontSize: "14px",
-        marginBottom: "4px",
+        fontWeight: 700,
+        fontSize: "24px",
+        marginBottom: "8px",
         overflow: "hidden",
         display: "-webkit-box",
         WebkitLineClamp: 2,
         WebkitBoxOrient: "vertical",
+        lineHeight: "1.4",
       }}>
         {video.title}
       </div>
 
-      {/* Channel */}
-      <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
-        {video.channel} · {video.publish_date}
+      <div style={{ fontSize: "16px", color: "var(--text-muted)", marginBottom: "28px" }}>
+        {video.channel} • {video.publish_date}
       </div>
 
-      {/* Stats grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
         <Stat label="Views" value={fmt(video.view_count)} />
         <Stat label="Likes" value={fmt(video.like_count)} />
         <Stat label="Comments" value={fmt(video.comment_count)} />
@@ -62,13 +41,20 @@ export default function VideoCard({ video, label }) {
         />
       </div>
 
-      {/* Transcript badge */}
       <div style={{
-        marginTop: "12px",
-        fontSize: "12px",
-        color: video.transcript_available ? "#22c55e" : "#ef4444",
+        marginTop: "24px",
+        fontSize: "15px",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        color: video.transcript_available ? "var(--success)" : "var(--error)",
+        background: video.transcript_available ? "var(--success-bg)" : "var(--error-bg)",
+        padding: "10px 16px",
+        borderRadius: "var(--radius-sm)",
+        fontWeight: 500,
+        border: `1px solid ${video.transcript_available ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`
       }}>
-        {video.transcript_available ? "✓ Transcript indexed" : "✗ No transcript available"}
+        {video.transcript_available ? "✓ Transcript Indexed" : "✗ No Transcript"}
       </div>
     </div>
   );
@@ -76,20 +62,11 @@ export default function VideoCard({ video, label }) {
 
 function Stat({ label, value, valueColor }) {
   return (
-    <div style={{
-      background: "var(--surface-2)",
-      borderRadius: "8px",
-      padding: "10px 12px",
-    }}>
-      <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "3px" }}>
+    <div className="stat-card">
+      <div className="stat-label">
         {label}
       </div>
-      <div style={{
-        fontSize: "15px",
-        fontWeight: 700,
-        color: valueColor || "var(--text)",
-        fontVariantNumeric: "tabular-nums",
-      }}>
+      <div className="stat-value" style={{ color: valueColor || "var(--text)" }}>
         {value}
       </div>
     </div>

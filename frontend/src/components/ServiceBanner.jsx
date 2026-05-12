@@ -5,24 +5,13 @@ export default function ServiceBanner({ health }) {
   if (allOk) return null;
 
   return (
-    <div style={{
-      background: "rgba(239,68,68,0.1)",
-      border: "1px solid rgba(239,68,68,0.3)",
-      borderRadius: "8px",
-      padding: "10px 16px",
-      marginBottom: "16px",
-      fontSize: "13px",
-      color: "#fca5a5",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-    }}>
-      <span>⚠</span>
+    <div className="error-text" style={{ marginBottom: "24px", animation: "pulse 3s infinite" }}>
+      <span style={{ fontSize: "18px" }}>⚠</span>
       <span>
-        GPU services offline —&nbsp;
+        <strong>GPU services offline</strong> —&nbsp;
         {!health.services?.embed_service && "Embedding service down. "}
         {!health.services?.llm_service && "LLM service down. "}
-        Restart your Kaggle notebook and update <code style={{background:"rgba(255,255,255,0.1)",padding:"1px 5px",borderRadius:"4px"}}>EMBED_SERVICE_URL</code> in <code style={{background:"rgba(255,255,255,0.1)",padding:"1px 5px",borderRadius:"4px"}}>.env</code>.
+        Restart your Kaggle notebook and update <code style={{background:"rgba(0,0,0,0.3)",padding:"2px 6px",borderRadius:"4px",border:"1px solid rgba(255,255,255,0.1)",fontFamily:"monospace"}}>EMBED_SERVICE_URL</code> in <code style={{background:"rgba(0,0,0,0.3)",padding:"2px 6px",borderRadius:"4px",border:"1px solid rgba(255,255,255,0.1)",fontFamily:"monospace"}}>.env</code>.
       </span>
     </div>
   );

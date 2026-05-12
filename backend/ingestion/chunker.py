@@ -133,18 +133,54 @@ def chunk_transcript(
 
     return chunks
 
+def build_hook_chunk(meta: VideoMetadata, transcript_segments: list[dict]) -> TranscriptChunk:
+    """
+    SPECIAL: Extract first 30 seconds as a dedicated hook chunk.
+    Gets high retrieval priority for hook questions.
+    """
+    hook_segments = []
+    for seg in transcript_segments:
+        if seg["start"] >= 30:
+            break
+        hook_segments.append(seg["text"])
+
+    hook_text = " ".join(hook_segments).strip()
+    if not hook_text:
+        return None
+
+    return TranscriptChunk(
+        chunk_id=f"{meta.video_id}_hook",
+        video_id=meta.video_id,
+        video_title=f"{meta.title} - HOOK (0-30s)",
+        chunk_index=-1,  # Special negative ID for hooks
+        chunk_type="hook",
+        start_time=0.0,
+        end_time=30.0,
+        start_label="0:00",
+        end_label="0:30",
+        text=hook_text,
+    )
 
 def build_all_chunks(
     meta: VideoMetadata,
     transcript_segments: Optional[list[dict]],
 ) -> list[TranscriptChunk]:
-    """
-    Master function: builds summary chunk + all transcript chunks.
-    Returns them in order: [summary, chunk_1, chunk_2, ...]
-    """
+    chunks = []
+    
+    # 1. Summary chunk
     summary = build_summary_chunk(meta, transcript_segments)
+    chunks.append(summary)
+    
     if not transcript_segments:
-        return [summary]
-
+        return chunks
+    
+    # 2. Hook chunk (first 30s)
+    hook = build_hook_chunk(meta, transcript_segments)
+    if hook:
+        chunks.append(hook)
+    
+    # 3. Main transcript chunks
     transcript_chunks = chunk_transcript(meta, transcript_segments)
-    return [summary] + transcript_chunks
+    chunks.extend(transcript_chunks)
+    
+    return chunks

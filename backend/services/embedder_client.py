@@ -1,6 +1,6 @@
 import logging
 import httpx
-from backend.config import settings
+from backend.config import kaggle_upstream_headers, settings
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ def get_client() -> httpx.AsyncClient:
     if _client is None or _client.is_closed:
         _client = httpx.AsyncClient(
             timeout=httpx.Timeout(60.0),
-            headers={"x-service-token": settings.kaggle_service_token},
+            headers=kaggle_upstream_headers(),
         )
     return _client
 

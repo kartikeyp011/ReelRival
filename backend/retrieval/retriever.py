@@ -6,7 +6,6 @@ from backend.config import settings
 
 logger = logging.getLogger(__name__)
 
-
 def retrieve(
     query_embedding: list[float],
     k: int = None,
@@ -14,46 +13,36 @@ def retrieve(
 ) -> list[dict]:
     """
     Retrieve top-k relevant chunks for a query embedding.
-
-    Args:
-        query_embedding: embedded query vector from Kaggle embedding service
-        k: number of results to return (defaults to settings.top_k_chunks)
-        video_ids: optional filter — only return chunks from these video IDs
-
-    Returns:
-        List of chunk metadata dicts sorted by relevance score descending.
-        Each dict includes all TranscriptChunk fields plus a 'score' key.
+    Returns list of **chunk dicts** (not tuples) sorted by relevance.
     """
     if k is None:
         k = settings.top_k_chunks
 
-    # Fetch more than k if filtering by video_id to ensure we have enough after filter
     fetch_k = k * 3 if video_ids else k
-
     raw_results = faiss_store.search(query_embedding, k=fetch_k)
 
     if not raw_results:
-        logger.warning("FAISS search returned no results.")
         return []
 
     enriched = []
     for faiss_id, score in raw_results:
-        chunk = metadata_store.get_chunk(faiss_id)
-        if not chunk:
+        chunk_dict = metadata_store.get_chunk(faiss_id)
+        if not chunk_dict:
             continue
 
-        # Apply video_id filter if specified
-        if video_ids and chunk.get("video_id") not in video_ids:
+        # Filter by video_ids if specified
+        if video_ids and chunk_dict.get("video_id") not in video_ids:
             continue
 
-        enriched.append({**chunk, "score": score})
+        # Convert dict to include score
+        chunk_with_score = {**chunk_dict, "score": float(score)}
+        enriched.append(chunk_with_score)
 
         if len(enriched) >= k:
             break
 
-    logger.info(f"Retrieved {len(enriched)} chunks for query (k={k})")
+    logger.info(f"Retrieved {len(enriched)} chunks (requested k={k})")
     return enriched
-
 
 def build_citations(retrieved_chunks: list[dict]) -> list[CitationSource]:
     """

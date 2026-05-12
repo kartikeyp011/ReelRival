@@ -1,5 +1,8 @@
-from pydantic_settings import BaseSettings
 from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
@@ -29,12 +32,23 @@ class Settings(BaseSettings):
     backend_port: int = 8000
     cors_origins: str = "http://localhost:5173"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(
+        env_file=str(_REPO_ROOT / ".env"),
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
 settings = Settings()
+
+
+def kaggle_upstream_headers() -> dict[str, str]:
+    """Headers for outbound calls to Kaggle services (ngrok + optional token auth)."""
+    return {
+        "x-service-token": settings.kaggle_service_token,
+        # Required for ngrok free tier when the interstitial would block httpx.
+        "ngrok-skip-browser-warning": "true",
+    }
 
 # Ensure data directory exists
 Path("./data").mkdir(exist_ok=True)

@@ -29,78 +29,48 @@ export default function URLInput({ onIngest, loading }) {
     onIngest(urlA.trim(), urlB.trim());
   }
 
-  const inputStyle = {
-    width: "100%",
-    background: "var(--surface-2)",
-    border: "1px solid var(--border)",
-    borderRadius: "var(--radius)",
-    padding: "12px 14px",
-    color: "var(--text)",
-    fontSize: "14px",
-    outline: "none",
-    transition: "border-color 0.15s",
-  };
-
   return (
     <form onSubmit={handleSubmit}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
-        {/* URL inputs */}
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: "240px" }}>
-            <label style={{ fontSize: "12px", color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
-              VIDEO A
+        <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+          <div className="input-group" style={{ minWidth: "300px" }}>
+            <label className="input-label">
+              Video A
             </label>
             <input
-              style={inputStyle}
+              className="styled-input"
               placeholder="https://youtube.com/watch?v=..."
               value={urlA}
               onChange={e => setUrlA(e.target.value)}
               disabled={loading}
-              onFocus={e => e.target.style.borderColor = "var(--accent)"}
-              onBlur={e => e.target.style.borderColor = "var(--border)"}
             />
           </div>
-          <div style={{ flex: 1, minWidth: "240px" }}>
-            <label style={{ fontSize: "12px", color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
-              VIDEO B
+          <div className="input-group" style={{ minWidth: "300px" }}>
+            <label className="input-label">
+              Video B
             </label>
             <input
-              style={inputStyle}
+              className="styled-input"
               placeholder="https://youtube.com/watch?v=..."
               value={urlB}
               onChange={e => setUrlB(e.target.value)}
               disabled={loading}
-              onFocus={e => e.target.style.borderColor = "var(--accent)"}
-              onBlur={e => e.target.style.borderColor = "var(--border)"}
             />
           </div>
         </div>
 
-        {/* Error */}
         {error && (
-          <div style={{ fontSize: "13px", color: "var(--error)" }}>
-            {error}
+          <div className="error-text">
+            <span>✗</span> {error}
           </div>
         )}
 
-        {/* Submit */}
         <button
           type="submit"
+          className="btn-primary"
           disabled={loading}
-          style={{
-            background: loading ? "var(--surface-2)" : "var(--accent)",
-            color: loading ? "var(--text-muted)" : "white",
-            padding: "12px 28px",
-            borderRadius: "var(--radius)",
-            fontWeight: 600,
-            fontSize: "14px",
-            alignSelf: "flex-start",
-            transition: "background 0.15s",
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
-          onMouseEnter={e => { if (!loading) e.target.style.background = "var(--accent-hover)"; }}
-          onMouseLeave={e => { if (!loading) e.target.style.background = "var(--accent)"; }}
+          style={{ alignSelf: "center", minWidth: "240px", marginTop: "12px" }}
         >
           {loading ? "Analyzing…" : "⚡ Analyze Videos"}
         </button>

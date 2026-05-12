@@ -13,6 +13,7 @@ class Platform(str, Enum):
 class ChunkType(str, Enum):
     summary = "summary"
     transcript = "transcript"
+    HOOK = "hook"
 
 
 # ─── Ingestion Schemas ────────────────────────────────

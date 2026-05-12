@@ -1,7 +1,7 @@
 import logging
 from typing import AsyncGenerator
 import httpx
-from backend.config import settings
+from backend.config import kaggle_upstream_headers, settings
 
 logger = logging.getLogger(__name__)
 
@@ -12,17 +12,17 @@ async def stream_chat(prompt: str) -> AsyncGenerator[str, None]:
     Yields string tokens as they arrive.
     Raises RuntimeError if service is unreachable.
     """
-    headers = {"x-service-token": settings.kaggle_service_token}
+    headers = kaggle_upstream_headers()
 
     try:
         async with httpx.AsyncClient(
-            timeout=httpx.Timeout(300.0)
+            timeout=httpx.Timeout(300.0),
+            headers=headers,
         ) as client:
             async with client.stream(
                 "POST",
                 f"{settings.llm_service_url}/chat/stream",
                 json={"prompt": prompt},
-                headers=headers,
             ) as response:
                 response.raise_for_status()
                 async for chunk in response.aiter_text():
@@ -46,13 +46,15 @@ async def generate_chat(prompt: str) -> str:
     Non-streaming version — collects full response.
     Used for testing only.
     """
-    headers = {"x-service-token": settings.kaggle_service_token}
+    headers = kaggle_upstream_headers()
 
-    async with httpx.AsyncClient(timeout=httpx.Timeout(300.0)) as client:
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(300.0),
+        headers=headers,
+    ) as client:
         response = await client.post(
             f"{settings.llm_service_url}/chat",
             json={"prompt": prompt},
-            headers=headers,
         )
         response.raise_for_status()
         return response.json().get("response", "")
